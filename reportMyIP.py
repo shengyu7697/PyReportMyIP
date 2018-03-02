@@ -37,22 +37,22 @@ def upgradeMyself(url):
 		r = downloadFile(url, dlPath)
 	except:
 		print("downloadFile except, upgrade failed.")
-		return
+		return False
 	if r == False:
 		print("upgrade failed.")
-		return
+		return False
 
 	try:
 		os.rename(appPath, backupPath)
 	except OSError, (errno, strerror):
 		print("Unable to rename %s to %s: (%d) %s" % (appPath, backupPath, errno, strerror))
-		return
+		return False
 
 	try:
 		os.rename(dlPath, appPath)
 	except OSError, (errno, strerror):
 		print("Unable to rename %s to %s: (%d) %s" % (dlPath, appPath, errno, strerror))
-		return
+		return False
 
 	try:
 		import shutil
@@ -62,8 +62,7 @@ def upgradeMyself(url):
 
 	print("New version installed as %s" % appPath)
 	print("Previous version backed up to %s" % (backupPath))
-	return
-
+	return True
 
 def restartMyself():
 	# https://www.programcreek.com/python/example/986/os.execv
@@ -167,10 +166,12 @@ def startClient():
 			if "getClientLeastVersion" in dict2: # if dict2 has getClientLeastVersion key
 				clientLeastVersion = dict2["getClientLeastVersion"]
 				if LooseVersion(clientLeastVersion) > LooseVersion(version): # ref https://stackoverflow.com/questions/11887762/how-do-i-compare-version-numbers-in-python
-					s.close()
+
 					print("Detect new version. I need upgrade (%s -> %s)." % (version, clientLeastVersion))
-					upgradeMyself(dict2["url"])
-					restartMyself()
+					r = upgradeMyself(dict2["url"])
+					if r == True:
+						s.close()
+						restartMyself()
 				else:
 					print("I'm the least version %s, client least version %s." % (version, clientLeastVersion))
 			else:
