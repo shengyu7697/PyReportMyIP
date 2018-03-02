@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import socket
 import signal
+import sys
 
 gRunning = True
 
@@ -12,9 +13,12 @@ def signalHandler(signal, frame):
 
 def startServer():
 	signal.signal(signal.SIGINT, signalHandler)
-	version = "0.9.0"
-	clientLeastVersion = "0.9.2"
-	HOST = "0.0.0.0"
+	version = "1.0.0"
+	clientLeastVersion = "0.9.5"
+	if len(sys.argv) == 2:
+		HOST = sys.argv[1]
+	else:
+		HOST = "0.0.0.0"
 	PORT = 2330
 
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -48,7 +52,7 @@ def startServer():
 			## process recv data
 			dict1 = eval(data) # string to dict
 			if dict1["type"] == "getClientLeastVersion":
-				msg = str({"getClientLeastVersion": clientLeastVersion, "url": "http://localhost:5000/reportMyIP.py"})
+				msg = str({"getClientLeastVersion": clientLeastVersion, "url": "http://%s:7000/reportMyIP.py" % HOST})
 			elif dict1["type"] == "getServerVersion":
 				msg = str({"getServerVersion": version})
 			else:
