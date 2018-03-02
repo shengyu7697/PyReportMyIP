@@ -9,7 +9,7 @@ import struct
 import getpass
 
 gRunning = True
-gCount = 1
+gCount = 0
 
 # https://gist.github.com/gesquive/8363131
 # http://hackthology.com/how-to-write-self-updating-python-programs-using-pip-and-git.html
@@ -55,8 +55,8 @@ def getUsername():
 
 def startClient():
 	signal.signal(signal.SIGINT, signalHandler)
-
-	HOST = '0.0.0.0'
+	version = "0.9.1"
+	HOST = "0.0.0.0"
 	PORT = 2330
 
 	while gRunning == True:
@@ -66,12 +66,35 @@ def startClient():
 		except IOError as e:
 			print(e)
 			print("connect failed. wait 5s to reconnect.")
-			time.sleep(5) # sleep 5 sec
+			time.sleep(1) # sleep 5 sec
 			continue
 
 		while gRunning == True:
-			msg = "Hostname=%s User=%s IP=%s" % (getHostname(), getUsername(), getHostIp())
+# type: 
+# getClientLeastVersion
+# getServerVersion
+# reportClientVersion
+# reportInfo
+			
+			global gCount
+			#print(gCount)
+			if gCount % 10 == 0: # getClientLeastVersion
+				msg = str({"type": "getClientLeastVersion"})
+			elif gCount % 10 == 1: # getServerVersion
+				msg = str({"type": "getServerVersion"})
+			elif gCount % 10 == 2: # reportClientVersion
+				msg = str({"type": "reportClientVersion", "reportClientVersion": version})
+			else: # reportInfo
+				dict1 = {
+				"type": "reportInfo",
+				"hostname": getHostname(),
+				"user": getUsername(),
+				"ip": getHostIp()
+				}
+				msg = str(dict1) # dict to string
 			s.send(msg)
+			gCount = gCount + 1
+
 			data = s.recv(1024)
 			if len(data) == 0: # connection closed
 				print("Server closed connection.")

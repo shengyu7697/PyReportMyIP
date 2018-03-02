@@ -12,12 +12,13 @@ def signalHandler(signal, frame):
 
 def startServer():
 	signal.signal(signal.SIGINT, signalHandler)
-
+	version = "0.9.0"
+	clientLeastVersion = "0.9.2"
 	HOST = "0.0.0.0"
 	PORT = 2330
 
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	#s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 	s.bind((HOST, PORT))
 	s.listen(5)
 
@@ -43,9 +44,18 @@ def startServer():
 				conn.close()
 				print("Client closed connection.")
 				break
-			print(data)
-
-			conn.send("server received you message.")
+			
+			## process recv data
+			dict1 = eval(data) # string to dict
+			if dict1["type"] == "getClientLeastVersion":
+				msg = str({"getClientLeastVersion": clientLeastVersion})
+			elif dict1["type"] == "getServerVersion":
+				msg = str({"getServerVersion": version})
+			else:
+				print(data)
+				msg = "server received you msg."
+			conn.send(msg)
+		
 		conn.close()
 
 
