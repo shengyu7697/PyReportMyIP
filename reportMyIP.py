@@ -6,8 +6,6 @@ import signal
 import sys
 import fcntl
 import struct
-import getpass
-from distutils.version import LooseVersion, StrictVersion
 import os
 import requests
 
@@ -15,6 +13,46 @@ gRunning = True
 gCount = 0
 
 #### download util ####
+def getFileSizeStr(size):
+	if size < 1024 :
+		return "%dBytes" % (size)
+	elif size < 1000*1000 :
+		return "%.1fKB" % (size/1000.0)
+	elif size < 1000*1000*1000 :
+		return "%.1fMB" % (size/1000.0/1000.0)
+	elif size < 1000*1000*1000*1000 :
+		return "%.1fGB" % (size/1000.0/1000.0/1000.0)
+
+def getContentLength(url):
+	r = requests.head(url, allow_redirects=True)
+	header = r.headers
+	content_length = header.get('content-length', None)
+	return content_length
+
+def downloadFile2(url, filename):
+	r = requests.get(url, stream=True)
+	handle = open(filename, "wb")
+
+	contentLength = getContentLength(url)
+	if contentLength == None:
+		# The header is improper or missing Content-Length, just download
+		print("downloading %s to %s ..." % (url, filename))
+		handle.write(r.content)
+		return True
+
+	totalLen = int(contentLength)
+	fileSizeStr = getFileSizeStr(totalLen)
+
+	sumLen = 0
+	for chunk in r.iter_content(chunk_size=8192):
+		if chunk:  # filter out keep-alive new chunks
+			handle.write(chunk)
+			sumLen = sumLen + len(chunk)
+			sys.stdout.write("downloading %s to %s ... %d/%d (%.1f%% %s)\r" % (url, filename, sumLen, totalLen, sumLen/float(totalLen)*100.0, fileSizeStr) )
+			sys.stdout.flush()
+	sys.stdout.write("\n")
+	return True
+
 def downloadFile(url, filename):
 	print("downloading %s to %s ..." % (url, filename))
 	r = requests.get(url)
@@ -34,8 +72,9 @@ def upgradeMyself(url):
 	dlPath = appPath + ".new"
 	backupPath = appPath + ".old"
 	try:
-		r = downloadFile(url, dlPath)
-	except:
+		r = downloadFile2(url, dlPath)
+	except IOError as e:
+		#print(e)
 		print("downloadFile except, upgrade failed.")
 		return False
 	if r == False:
@@ -104,6 +143,7 @@ def getHostname():
 	return socket.getfqdn(socket.gethostname())
 
 def getUsername():
+	import getpass
 	return getpass.getuser()
 
 ########
@@ -129,7 +169,6 @@ def startClient():
 			print("connect to %s:%d ..." % (HOST, PORT))
 			s.connect((HOST, PORT))
 		except IOError as e:
-			print(e)
 			print("connect failed. wait 5s to reconnect.")
 			time.sleep(5) # sleep 5 sec
 			continue
@@ -162,8 +201,8 @@ def startClient():
 			dict2 = eval(data) # string to dict
 			if "getClientLeastVersion" in dict2: # if dict2 has getClientLeastVersion key
 				clientLeastVersion = dict2["getClientLeastVersion"]
+				from distutils.version import LooseVersion, StrictVersion
 				if LooseVersion(clientLeastVersion) > LooseVersion(version): # ref https://stackoverflow.com/questions/11887762/how-do-i-compare-version-numbers-in-python
-
 					print("Detect new version. I need upgrade (%s -> %s)." % (version, clientLeastVersion))
 					r = upgradeMyself(dict2["url"])
 					if r == True:
