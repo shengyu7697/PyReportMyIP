@@ -7,6 +7,7 @@ import sys
 import fcntl
 import struct
 import getpass
+from distutils.version import LooseVersion, StrictVersion
 
 gRunning = True
 gCount = 0
@@ -53,6 +54,11 @@ def getUsername():
 
 ########
 
+# msg type:
+# getClientLeastVersion
+# getServerVersion
+# reportClientVersion
+# reportInfo
 def startClient():
 	signal.signal(signal.SIGINT, signalHandler)
 	version = "0.9.1"
@@ -70,19 +76,13 @@ def startClient():
 			continue
 
 		while gRunning == True:
-# type: 
-# getClientLeastVersion
-# getServerVersion
-# reportClientVersion
-# reportInfo
-			
 			global gCount
 			#print(gCount)
-			if gCount % 10 == 0: # getClientLeastVersion
+			if gCount % 10 == 1: # getClientLeastVersion
 				msg = str({"type": "getClientLeastVersion"})
-			elif gCount % 10 == 1: # getServerVersion
+			elif gCount % 10 == 2: # getServerVersion
 				msg = str({"type": "getServerVersion"})
-			elif gCount % 10 == 2: # reportClientVersion
+			elif gCount % 10 == 3: # reportClientVersion
 				msg = str({"type": "reportClientVersion", "reportClientVersion": version})
 			else: # reportInfo
 				dict1 = {
@@ -100,12 +100,21 @@ def startClient():
 				print("Server closed connection.")
 				break
 
-			print(data)
+			## process recv data
+			dict2 = eval(data) # string to dict
+			if "getClientLeastVersion" in dict2: # if dict2 has getClientLeastVersion key
+				print(dict2["getClientLeastVersion"])
+				clientLeastVersion = dict2["getClientLeastVersion"]
+				if LooseVersion(clientLeastVersion) > LooseVersion(version): # ref https://stackoverflow.com/questions/11887762/how-do-i-compare-version-numbers-in-python
+					print("Detect new version. I need upgrade (%s -> %s)." % (version, clientLeastVersion))
+					upgradeMyself()
+			else:
+				print(data)
 			time.sleep(1) # sleep 1 sec
 
 		s.close()
 
 if __name__ == '__main__':
 	startClient()
-
+	
 	print("end of process.")

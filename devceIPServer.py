@@ -53,7 +53,7 @@ def startServer():
 				msg = str({"getServerVersion": version})
 			else:
 				print(data)
-				msg = "server received you msg."
+				msg = str({"serverReply": "server received you msg."})
 			conn.send(msg)
 		
 		conn.close()
