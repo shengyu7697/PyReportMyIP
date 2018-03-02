@@ -8,6 +8,7 @@ import fcntl
 import struct
 import getpass
 from distutils.version import LooseVersion, StrictVersion
+import os
 
 gRunning = True
 gCount = 0
@@ -16,6 +17,9 @@ gCount = 0
 # http://hackthology.com/how-to-write-self-updating-python-programs-using-pip-and-git.html
 def upgradeMyself():
 	print("upgradeMyself")
+
+def restartMyself():
+	os.execv(sys.executable, [sys.executable] + sys.argv)
 
 def signalHandler(signal, frame):
 	print("You pressed Ctrl+C!")
@@ -65,6 +69,8 @@ def startClient():
 	HOST = "0.0.0.0"
 	PORT = 2330
 
+	print("version: %s, pid: %s" % (version, os.getpid()))
+
 	while gRunning == True:
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -106,8 +112,10 @@ def startClient():
 				print(dict2["getClientLeastVersion"])
 				clientLeastVersion = dict2["getClientLeastVersion"]
 				if LooseVersion(clientLeastVersion) > LooseVersion(version): # ref https://stackoverflow.com/questions/11887762/how-do-i-compare-version-numbers-in-python
+					s.close()
 					print("Detect new version. I need upgrade (%s -> %s)." % (version, clientLeastVersion))
 					upgradeMyself()
+					restartMyself()
 			else:
 				print(data)
 			time.sleep(1) # sleep 1 sec
