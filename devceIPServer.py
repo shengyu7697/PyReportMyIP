@@ -48,7 +48,7 @@ def startServer():
 			## process recv data
 			dict1 = eval(data) # string to dict
 			if dict1["type"] == "getClientLeastVersion":
-				msg = str({"getClientLeastVersion": clientLeastVersion})
+				msg = str({"getClientLeastVersion": clientLeastVersion, "url": "http://localhost:5000/reportMyIP.py"})
 			elif dict1["type"] == "getServerVersion":
 				msg = str({"getServerVersion": version})
 			else:

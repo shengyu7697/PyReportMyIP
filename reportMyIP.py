@@ -9,14 +9,61 @@ import struct
 import getpass
 from distutils.version import LooseVersion, StrictVersion
 import os
+import requests
 
 gRunning = True
 gCount = 0
 
+#### download util ####
+def downloadFile(url, filename):
+	print("downloading %s ..." % filename)
+	r = requests.get(url)
+	if r.status_code == 404: # check url is downloadable
+		return False
+	handle = open(filename, "wb")
+	handle.write(r.content)
+	return True
+
+########
+
 # https://gist.github.com/gesquive/8363131
 # http://hackthology.com/how-to-write-self-updating-python-programs-using-pip-and-git.html
-def upgradeMyself():
+def upgradeMyself(url):
 	print("upgradeMyself")
+	appPath = os.path.realpath(sys.argv[0])
+	dlPath = appPath + ".new"
+	backupPath = appPath + ".old"
+	try:
+		r = downloadFile(url, dlPath)
+	except:
+		print("downloadFile except, upgrade failed.")
+		return
+	if r == False:
+		print("upgrade failed.")
+		return
+
+	try:
+		os.rename(appPath, backupPath)
+	except OSError, (errno, strerror):
+		print("Unable to rename %s to %s: (%d) %s" % (appPath, backupPath, errno, strerror))
+		return
+
+	try:
+		os.rename(dlPath, appPath)
+	except OSError, (errno, strerror):
+		print("Unable to rename %s to %s: (%d) %s" % (dlPath, appPath, errno, strerror))
+		return
+
+	try:
+		import shutil
+		shutil.copymode(backupPath, appPath)
+	except:
+		os.chmod(appPath, 0755)
+
+	print("New version installed as %s" % appPath)
+	print("Previous version backed up to %s" % (backupPath))
+	return
+
 
 def restartMyself():
 	os.execv(sys.executable, [sys.executable] + sys.argv)
@@ -114,8 +161,10 @@ def startClient():
 				if LooseVersion(clientLeastVersion) > LooseVersion(version): # ref https://stackoverflow.com/questions/11887762/how-do-i-compare-version-numbers-in-python
 					s.close()
 					print("Detect new version. I need upgrade (%s -> %s)." % (version, clientLeastVersion))
-					upgradeMyself()
+					upgradeMyself(dict2["url"])
 					restartMyself()
+				else:
+					print("I'm the least version.")
 			else:
 				print(data)
 			time.sleep(1) # sleep 1 sec
