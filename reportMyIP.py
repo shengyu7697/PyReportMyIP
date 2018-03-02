@@ -111,7 +111,6 @@ def getUsername():
 # msg type:
 # getClientLeastVersion
 # getServerVersion
-# reportClientVersion
 # reportInfo
 def startClient():
 	signal.signal(signal.SIGINT, signalHandler)
@@ -142,8 +141,6 @@ def startClient():
 				msg = str({"type": "getClientLeastVersion"})
 			#elif gCount % 4 == 2: # getServerVersion
 			#	msg = str({"type": "getServerVersion"})
-			#elif gCount % 4 == 3: # reportClientVersion
-			#	msg = str({"type": "reportClientVersion", "reportClientVersion": version})
 			else: # reportInfo
 				dict1 = {
 				"type": "reportInfo",
