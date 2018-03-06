@@ -32,6 +32,13 @@ start devceIPServer.py (server)
 devceIPServer.py [ip]
 ```
 
+## 如何線上更新 reportMyIP.py
+step 1. 放置新版的 reportMyIP.py 在 startSimpleHTTPServer.sh 同個目錄下  
+step 2. 啟動 startSimpleHTTPServer.sh 腳本  
+step 3. 修改 devceIPServer.py 裡的 clientLeastVersion 版號 (版號一定要更新, 否則版號一樣是不會自動更新的)  
+step 4. 啟動 devceIPServer.py  
+不久後, 舊版 reportMyIP.py 就會檢查到有新版本可以更新, 就會自動下載更新了！  
+
 ## System Requirement
 Python  
 
