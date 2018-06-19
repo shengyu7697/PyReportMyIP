@@ -6,30 +6,30 @@ This is a program that automatically updates the IP addresses to server.
 * Automatic reconnect
 * Self-upgrade
 
-## Install
+## Dependencies
 step 1. 安裝必要的第三方套件 requests  
 ```
-pip install requests
+$ pip install requests
 ```
 step 2. 安裝 report-myip.py  
 ```
-cp report-myip.py ~/bin
+$ cp report-myip.py ~/bin
 ```
 step 3. 開機自動啟動 report-myip.py  
 將下列 user 與 server_ip 替換, 插入到 /etc/rc.local 裡的 exit 0 之前  
 ```
-/home/{user}/bin/report-myip.py {server_ip} &
+$ /home/{user}/bin/report-myip.py {server_ip} &
 ```
 
 ## How to Use
 start report-myip.py (client)  
 ```
-report-myip.py [server_ip]
+$ report-myip.py [server_ip]
 ```
 
 start myip-server.py (server)  
 ```
-myip-server.py [ip]
+$ myip-server.py [ip]
 ```
 
 ## 如何線上更新 report-myip.py
@@ -47,3 +47,4 @@ Python 2.7.x
 
 ## License
 PyReportMyIP is published under the MIT license.  
+
