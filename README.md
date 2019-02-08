@@ -2,6 +2,9 @@ PyReportMyIP
 ============
 This is a program that automatically updates the IP addresses to server.  
 
+Demo on ubuntu.  
+![demo](https://raw.github.com/shengyu7697/PyReportMyIP/master/demo.gif)  
+
 ## Features
 * Automatic reconnect
 * Self-upgrade
